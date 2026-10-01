@@ -119,12 +119,16 @@ Next steps (future work, not implemented):
 - Commit a sample report and figures from a freely licensed video.
 - Add unit tests for the sampling, motion, and aggregation functions.
 
+## Tests
+
+`pip install pytest && pytest tests/` runs 13 regression tests: colour binning without uint8 overflow, COCO label-id-to-name mapping (checked against torchvision's own list), and segment boundaries including the last frame. The full pipeline also runs end to end on the synthetic clip from `scripts/make_test_video.py`.
+
 ## Credits and licence
 
 - Detection uses torchvision's Faster R-CNN ResNet50 FPN with its default pretrained weights (trained on COCO). torchvision is released under the BSD 3-Clause licence; the pretrained weights are provided by torchvision, and COCO annotations are licensed CC BY 4.0. Check the current torchvision documentation for the terms that apply to the weights you download.
 - Ren, He, Girshick, Sun, "Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks".
 - Video download uses yt-dlp; respect the terms of service of the sites you download from.
-- This repository does not currently contain a LICENSE file.
+- This project's own code is MIT licensed (see `LICENSE`).
 
 ## Related work
 
