@@ -28,6 +28,35 @@ COCO_CLASSES = [
     "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush",
 ]
 
+# torchvision COCO detection models emit labels in the original 91-id COCO
+# category space (index 0 = background, "N/A" = unused ids), not 1..80.
+# Must match FasterRCNN_ResNet50_FPN_Weights.DEFAULT.meta["categories"].
+COCO_CATEGORIES_91 = [
+    "__background__", "person", "bicycle", "car", "motorcycle", "airplane",
+    "bus", "train", "truck", "boat", "traffic light", "fire hydrant", "N/A",
+    "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse",
+    "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "N/A", "backpack",
+    "umbrella", "N/A", "N/A", "handbag", "tie", "suitcase", "frisbee", "skis",
+    "snowboard", "sports ball", "kite", "baseball bat", "baseball glove",
+    "skateboard", "surfboard", "tennis racket", "bottle", "N/A", "wine glass",
+    "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich",
+    "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake",
+    "chair", "couch", "potted plant", "bed", "N/A", "dining table", "N/A",
+    "N/A", "toilet", "N/A", "tv", "laptop", "mouse", "remote", "keyboard",
+    "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "N/A",
+    "book", "clock", "vase", "scissors", "teddy bear", "hair drier",
+    "toothbrush",
+]
+
+
+def _label_to_name(label: int) -> str | None:
+    """Map a torchvision COCO label id to a class name; None for background/N/A/out of range."""
+    label = int(label)
+    if label < 1 or label >= len(COCO_CATEGORIES_91):
+        return None
+    name = COCO_CATEGORIES_91[label]
+    return None if name == "N/A" else name
+
 
 @dataclass
 class Detection:
@@ -101,9 +130,9 @@ def run_detection(
         for box, label, score in zip(boxes, labels, scores):
             if score < min_score:
                 continue
-            if label < 1 or label > len(COCO_CLASSES):  # 1-indexed COCO
+            class_name = _label_to_name(label)
+            if class_name is None:
                 continue
-            class_name = COCO_CLASSES[label - 1]
             if class_name not in classes_of_interest:
                 continue
             dets.append(

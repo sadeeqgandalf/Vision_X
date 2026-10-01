@@ -49,12 +49,13 @@ def _dominant_colors(
     """Dominant RGB via 8³ histogram bins. Input BGR. Returns list of (R,G,B)."""
     h, w = frame.shape[:2]
     small = cv2.resize(frame, (w // downscale, h // downscale))
-    pixels = small.reshape(-1, 3)
+    # Cast before arithmetic: uint8 * int wraps around in NumPy.
+    pixels = small.reshape(-1, 3).astype(np.int32)
     # 8 bins per channel -> 512 bins; top n by count
     bins = 8
-    r = (pixels[:, 2] * (bins - 1) / 256).astype(np.int32)
-    g = (pixels[:, 1] * (bins - 1) / 256).astype(np.int32)
-    b = (pixels[:, 0] * (bins - 1) / 256).astype(np.int32)
+    r = pixels[:, 2] * bins // 256
+    g = pixels[:, 1] * bins // 256
+    b = pixels[:, 0] * bins // 256
     bin_idx = r * bins * bins + g * bins + b
     counts = np.bincount(bin_idx, minlength=bins ** 3)
     top_bins = np.argsort(counts)[::-1][:n_colors]

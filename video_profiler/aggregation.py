@@ -41,9 +41,12 @@ def _segment_by_fixed_windows(
     duration_sec: float,
     window_sec: float,
 ) -> list[tuple[float, float]]:
-    """(start_sec, end_sec) for each fixed window."""
+    """(start_sec, end_sec) for each fixed window. The last window is end-inclusive."""
+    if n_frames <= 0:
+        return []
     if duration_sec <= 0 or window_sec <= 0:
-        return [(0.0, duration_sec)] if duration_sec > 0 else []
+        # e.g. a single analyzed frame: one zero-length segment so it is not dropped
+        return [(0.0, max(duration_sec, 0.0))]
     segments = []
     t = 0.0
     while t < duration_sec:
@@ -59,7 +62,7 @@ def _aggregate_colors(color_lists: list[list[tuple[int, int, int]]], top_k: int 
         return []
     firsts = [lst[0] if lst else (0, 0, 0) for lst in color_lists]
     from collections import Counter
-    binned = [tuple((c // 32) * 32 for c in fc) for fc in firsts]
+    binned = [tuple(c // 32 for c in fc) for fc in firsts]
     cnt = Counter(binned)
     top = cnt.most_common(top_k)
     return [tuple((b * 32 + 16 for b in bc)) for bc, _ in top]
@@ -109,8 +112,12 @@ def aggregate(
 
     segments = _segment_by_fixed_windows(n, duration_sec, segment_window_sec)
     segment_summaries: list[SegmentSummary] = []
-    for start_sec, end_sec in segments:
-        indices = [i for i in range(n) if start_sec <= timestamps[i] < end_sec]
+    for seg_i, (start_sec, end_sec) in enumerate(segments):
+        is_last = seg_i == len(segments) - 1
+        indices = [
+            i for i in range(n)
+            if start_sec <= timestamps[i] < end_sec or (is_last and timestamps[i] == end_sec)
+        ]
         if not indices:
             continue
         seg_motions = [motion_per_frame[i] for i in indices]
