@@ -178,9 +178,9 @@ def _narrative_summary(profile: AggregatedProfile) -> str:
     return (
         f"This {duration:.1f}s video was analyzed over {n_frames} sampled frames. "
         f"Overall motion is {motion_level} (mean {mean_motion:.1f}, max {max_motion:.1f}). "
-        f"Detected objects: {obj_desc or 'none'}. "
-        f"Person count across frames: max {max(profile.person_count_per_frame) if profile.person_count_per_frame else 0}, "
-        f"total detections {persons}. "
+        f"Detections summed over the sampled frames (an object seen in several frames is counted in each): {obj_desc or 'none'}. "
+        f"People visible in one frame: at most {max(profile.person_count_per_frame) if profile.person_count_per_frame else 0} "
+        f"({persons} person detections in total). "
         f"Temporal segmentation: {segment_desc}."
     )
 
@@ -222,14 +222,14 @@ def generate_report(
         f"- Frames analyzed: {profile.total_frames_analyzed}",
         f"- Mean motion: {profile.global_mean_motion:.2f}",
         f"- Max motion: {profile.global_max_motion:.2f}",
-        f"- Object counts: {profile.global_object_counts}",
+        f"- Detections summed over sampled frames: {profile.global_object_counts}",
         "",
         "## Temporal segments (time windows)",
         "",
         "Segments are fixed time windows over the video. For each segment: mean/max motion, "
-        "object counts, and max person count.",
+        "detections summed over the sampled frames, and the most people seen in one frame.",
         "",
-        "| Start (s) | End (s) | Mean motion | Object counts | Person max |",
+        "| Start (s) | End (s) | Mean motion | Detections (summed over frames) | Most people in one frame |",
         "|-----------|--------|-------------|----------------|------------|",
     ]
     for s in profile.segments[:30]:

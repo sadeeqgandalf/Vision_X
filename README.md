@@ -12,7 +12,9 @@ flowchart LR
     E --> F["report.json<br/>report.md<br/>figures/*.png"]
 ```
 
-No sample report or output images are committed to this repository yet (see [Report format](#report-format) and [Next steps](#limitations-and-next-steps)).
+A sample report is in [`examples/carla_pedestrian_behind_van/`](examples/carla_pedestrian_behind_van/report.md): a 16 s CARLA driving clip (my own simulator recording) in which a pedestrian is hidden behind a van, profiled over 40 sampled frames.
+
+![Sample detections](examples/carla_pedestrian_behind_van/figures/detection_bbox_sample_02.png)
 
 ## What it does
 
@@ -110,18 +112,18 @@ Limitations, from the code:
 - Motion is a global frame difference between sampled frames. It is not optical flow and does not separate camera motion from object motion.
 - Sampling seeks to frame indices, so long videos are subsampled coarsely when `--max-frames` is small.
 - Frames are processed one at a time, and all sampled frames are held in memory.
-- No tests, no benchmarks, and no accuracy or speed measurements are included; none are claimed here.
+- Counts in the report are detections summed over sampled frames, not distinct objects: a car seen in 30 frames counts 30 times. Distinct-object counts need tracking (below).
+- There are regression tests (below) but no benchmarks or accuracy measurements; none are claimed here.
 - Detection is limited to the 80 COCO classes with a fixed 0.5 threshold.
 
 Next steps (future work, not implemented):
 
 - Add persistent track IDs by feeding detections to a tracker such as ByteTrack or SORT, then report per-track durations and distinct-object counts instead of per-frame counts. This would connect the profiler to multi-object tracking and make occlusion and re-identification gaps measurable.
-- Commit a sample report and figures from a freely licensed video.
 - Add unit tests for the sampling, motion, and aggregation functions.
 
 ## Tests
 
-`pip install pytest && pytest tests/` runs 13 regression tests: colour binning without uint8 overflow, COCO label-id-to-name mapping (checked against torchvision's own list), and segment boundaries including the last frame. The full pipeline also runs end to end on the synthetic clip from `scripts/make_test_video.py`.
+`pip install pytest && pytest tests/` runs 13 regression tests: colour binning without uint8 overflow, COCO label-id-to-name mapping (checked against torchvision's own list), and segment boundaries including the last frame. The full pipeline also runs end to end on the synthetic clip from `scripts/make_test_video.py` and on the CARLA clip in `examples/` (about 50 s on an Apple M-series CPU for 40 frames).
 
 ## Credits and licence
 
